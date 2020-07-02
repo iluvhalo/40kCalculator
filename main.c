@@ -112,7 +112,7 @@ void printDPrompt() {
 	printf("%s", "\ty - either '3' for a d3 or '6' for a d6\n");
 	printf("%s", "\tz - static damage\n");
 	printf("%s", "\tEXAMPLE: 0d3+2 for a 2 D weapon\n");
-	printf("%s", "Damage (D) of each attack (FORMAT: xDy+z)?  ");
+	printf("%s", "Damage (D) of each attack (FORMAT: [xDy+z] OR [xDy] OR [z])?  ");
 }
 
 /* read the D from stdin, parse, then sort into respective variables */
@@ -158,7 +158,7 @@ void parseD (char *str, Attacker *atk) {
 	free(tmp);
 
 	if ((!dPresent) && plusPresent) {
-		fprintf(stderr, "%s", "Input Format: [xDy+z] OR [z]\n");
+		fprintf(stderr, "%s", "Input Format: [xDy+z] OR [xDy] OR [z]\n");
 		fprintf(stderr, "%s", "Exiting...\n");
 		exit(1);
 	} else if ((!dPresent) && (!plusPresent)) {
@@ -194,6 +194,11 @@ void parseD (char *str, Attacker *atk) {
 				exit(1);
 			}	
 		}
+	}
+
+	if ((atk->d3 + atk->d6 + atk->dmg) == 0) {
+		fprintf(stderr, "%s", "ERROR:  You might want to check your weapon's damage profile.\n");
+		exit(1);
 	}
 }
 

@@ -1,40 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-/* Attacker Struct */
-typedef struct {
-	int A;			/* Attacking unit's Attacks stat or how many shots are fired */
-	char BSWS[2];		/* Unit's weapon skill or ballistic skill */
-	int hitMod;		/* Modifier to the unit's hit roll */
-	int hitOfSix;		/* The event that occurs on a hit roll of 6 */
-	int hitReroll;		/* The cause of re-rolling a hit roll */
-	int S;			/* Unit's Weapon's Strength characteristic */
-	int woundMod;		/* Modifier to a unit's wound roll */
-	int woundOfSix; 	/* The event that occurs on a wound roll of 6 */
-	int woundReroll;	/* The cause of re-rolling a wound roll */
-	int AP;			/* Weapon's AP value */
-	char D[20];		/* Weapon's damage value */
-	int d6;
-	int d3;
-	int dmg;
-} Attacker;
-
-/* Defender Struct */
-typedef struct {
-	int T;			/* Defender's toughness value */
-	int save;		/* Unit's basic armor save */
-	int saveMod;		/* Modifier to a unit's armor save */
-	char cover;		/* whether a unit is in cover or not */
-	int invulnSave;		/* Unit's invulnerable save */
-	int reroll;		/* criteria for a unit to re-roll a save */
-	int W;			/* How many wounds each model has */
-	int FnP;		/* Feel No Pain / Disgustingly Resilient */
-	int LD;			/* Unit's leadership characteristic */
-	int LDMod;		/* Modifier for a unit's LD */
-	int models;		/* How many models are in the unit */
-} Defender;
-
+#include "Attacker.h"
+#include "Defender.h"
 
 int main (int argc, char **argv) {
 	
@@ -45,6 +13,7 @@ int main (int argc, char **argv) {
 	atk = calloc(1, sizeof(Attacker));
 	dfd = calloc(1, sizeof(Defender));
 	tmp = calloc(1, sizeof(char) * 100);
+	memset(atk->D, 0, sizeof(char) * 100);
 
 	printf("%s\n", "Welcome to the Warhammer 40k Mathhammer Calculator");
 	printf("%s\n", "This will collect information about Attacking and Defending units and calculate expected hits, wound, damage, and morale");
@@ -92,15 +61,54 @@ int main (int argc, char **argv) {
 	}
 
 	/* Collect Damage (D) of weapon */	
-	printf("%s", "Damage (D) of each attack?  ");
+	printf("%s", "\nx - amount of dice in damage roll\n");
+	printf("%s", "y - either '3' for a d3 or '6' for a d6\n");
+	printf("%s", "z - static damage\n");
+	printf("%s", "Damage (D) of each attack (xDy+z)?  ");
 	fgets(tmp, 100, stdin);
-	if (sscanf(tmp, "%s", &atk->D) != 1) {
+	if (memcpy(atk->D, tmp, sizeof(char) * 20) == NULL) {
 		fprintf(stderr, "%s", "Input Failed\n");
 		return 1;
 	} else {
+		atk->D[strlen(atk->D)-1] = '\0';
 		printf("%s entered\n", atk->D);
 	}
+	memset(tmp, 0, 100);
+
+	parseD(atk);
 
 	
 	return 0;
+}
+
+void parseD (Attacker *atk) {
+	char *tmp;
+
+	tmp = calloc(1, sizeof(char) * 20);
+	int a, b;
+	
+	a = 0;
+	b = 0;
+
+	/* clear out white space and invalid characters from parsed string */
+	while (atk->D[a] != '\0') {
+		if ((atk->D[a] != ' ') && (((atk->D[a] >= '0') && (atk->D[a] <= '9')) || (atk->D[a] == 'D') || (atk->D[a] == 'd'))) {
+			if (atk->D[a] == 'D') {
+				atk->D[a] = 'd';
+			}
+			tmp[b] = atk->D[a];
+			b++;
+		}
+
+		a++;
+	}
+	memcpy(atk->D, tmp, 20);
+	free(tmp);
+
+	printf("%s\n", atk->D);
+
+	/* check for d3 and d6 dammage */
+	if (strstr(atk->D, "d3") != NULL) {
+		tmp = strstr(atk->D, "d3");
+	}	
 }

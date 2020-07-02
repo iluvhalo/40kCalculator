@@ -5,6 +5,8 @@
 #include "Defender.h"
 
 int collectInt();
+void printDPrompt();
+void collectD(Attacker *atk);
 void parseD (char *str);
 
 int main (int argc, char **argv) {
@@ -44,31 +46,9 @@ int main (int argc, char **argv) {
 	printf("%d entered\n", atk->AP);
 
 	/* Collect Damage (D) of weapon */	
-	printf("%s", "\tx - amount of dice in damage roll\n");
-	printf("%s", "\ty - either '3' for a d3 or '6' for a d6\n");
-	printf("%s", "\tz - static damage\n");
-	printf("%s", "\tEXAMPLE: 0d3+2 for a 2 D weapon\n");
-	printf("%s", "Damage (D) of each attack (FORMAT: xDy+z)?  ");
-	fgets(tmp, 100, stdin);
-	parseD(tmp);
-	if (sscanf(tmp, "%d%c%d+%d", &amt, &t, &type, &baseDmg) != 4) {
-		fprintf(stderr, "%s", "Input Failed\n");
-		return 1;
-	} else {
-		if (type == 3) {
-			atk->d3 = amt;
-		} else if (type == 6) {
-			atk->d6 = amt;
-		} else {
-			fprintf(stderr, "%s", "Input Failed\n");
-			return 1;
-		}
-		
-		atk->dmg = baseDmg;
-		printf("D3: %d\nD6: %d\n D: %d\n", atk->d3, atk->d6, atk->dmg);
-	}
-	memset(tmp, 0, 100);
-
+	printDPrompt();
+	collectD(atk);
+	printf("D3: %d\nD6: %d\n D: %d\n", atk->d3, atk->d6, atk->dmg);
 	
 	return 0;
 }
@@ -86,6 +66,40 @@ int collectInt () {
 	free(tmp);
 
 	return ret;
+}
+void printDPrompt() {
+	printf("%s", "\tx - amount of dice in damage roll\n");
+	printf("%s", "\ty - either '3' for a d3 or '6' for a d6\n");
+	printf("%s", "\tz - static damage\n");
+	printf("%s", "\tEXAMPLE: 0d3+2 for a 2 D weapon\n");
+	printf("%s", "Damage (D) of each attack (FORMAT: xDy+z)?  ");
+}
+
+void collectD(Attacker *atk) {
+	char *tmp;
+	char t;
+	int amt, type, base;
+
+	tmp = (char *) calloc(100, sizeof(char));
+
+	fgets(tmp, 100, stdin);
+	parseD(tmp);
+	if (sscanf(tmp, "%d%c%d+%d", &amt, &t, &type, &base) != 4) {
+		fprintf(stderr, "%s", "Input Failed\n");
+		exit(1);
+	} else {
+		if (type == 3) {
+			atk->d3 = amt;
+		} else if (type == 6) {
+			atk->d6 = amt;
+		} else {
+			fprintf(stderr, "%s", "Input Failed\n");
+			exit(1);
+		}
+		
+		atk->dmg = base;
+	}
+	free(tmp);
 }
 
 void parseD (char *str) {

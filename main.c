@@ -7,7 +7,7 @@
 int collectInt();
 void printDPrompt();
 void collectD(Attacker *atk);
-void parseD (char *str);
+void parseD (char *str, Attacker *atk);
 double woundingOn(double S, double T);
 double max(double a, double b);
 
@@ -118,35 +118,21 @@ void printDPrompt() {
 /* read the D from stdin, parse, then sort into respective variables */
 void collectD(Attacker *atk) {
 	char *tmp;
-	char t;
-	int amt, type, base;
 
 	tmp = (char *) calloc(100, sizeof(char));
 
 	fgets(tmp, 100, stdin);
-	parseD(tmp);
-	if (sscanf(tmp, "%d%c%d+%d", &amt, &t, &type, &base) != 4) {
-		fprintf(stderr, "%s", "Input Failed\n");
-		exit(1);
-	} else {
-		if (type == 3) {
-			atk->d3 = amt;
-		} else if (type == 6) {
-			atk->d6 = amt;
-		} else {
-			fprintf(stderr, "%s", "Input Failed\n");
-			exit(1);
-		}
-		
-		atk->dmg = base;
-	}
+	parseD(tmp, atk);
 	free(tmp);
 }
 
 /* cleans up input for D a little bit */
-/* TODO: make this more robust for different inputs */
-void parseD (char *str) {
+void parseD (char *str, Attacker *atk) {
 	char *tmp;
+	char t;
+	int amt, type;
+	char dPresent = 0;
+	char plusPresent = 0;
 
 	tmp = (char *) calloc(20, sizeof(char));
 	int a, b;
@@ -160,6 +146,8 @@ void parseD (char *str) {
 			if (str[a] == 'D') {
 				str[a] = 'd';
 			}
+			if (str[a] == 'd') dPresent = 1;
+			if (str[a] == '+') plusPresent = 1;
 			tmp[b] = str[a];
 			b++;
 		}
@@ -168,6 +156,45 @@ void parseD (char *str) {
 	}
 	memcpy(str, tmp, 20);
 	free(tmp);
+
+	if ((!dPresent) && plusPresent) {
+		fprintf(stderr, "%s", "Input Format: [xDy+z] OR [z]\n");
+		fprintf(stderr, "%s", "Exiting...\n");
+		exit(1);
+	} else if ((!dPresent) && (!plusPresent)) {
+		if (sscanf(str, "%d", &atk->dmg) != 1) {
+			fprintf(stderr, "%s", "Input Failed\n");
+			exit(1);
+		}
+	} else if (dPresent && (!plusPresent)) {
+		if (sscanf(str, "%d%c%d", &amt, &t, &type) != 3) {
+			fprintf(stderr, "%s", "Input Failed\n");
+			exit(1);
+		} else {
+			if (type == 3) {
+				atk->d3 = amt;
+			} else if (type == 6) {
+				atk->d6 = amt;
+			} else {
+				fprintf(stderr, "%s", "Die type must be either d3 or d6\n");
+				exit(1);
+			}
+		}
+	} else if (dPresent && plusPresent) {
+		if (sscanf(str, "%d%c%d+%d", &amt, &t, &type, &atk->dmg) != 4) {
+			fprintf(stderr, "%s", "Input Failed\n");
+			exit(1);
+		} else {
+			if (type == 3) {
+				atk->d3 = amt;
+			} else if (type == 6) {
+				atk->d6 = amt;
+			} else {
+				fprintf(stderr, "%s", "Die type must be either d3 or d6\n");
+				exit(1);
+			}	
+		}
+	}
 }
 
 /* figure what value rolls to wound succeed on */

@@ -8,18 +8,17 @@ int collectInt();
 void printDPrompt();
 void collectD(Attacker *atk);
 void parseD (char *str);
+double woundingOn(double S, double T);
+double max(double a, double b);
 
 int main (int argc, char **argv) {
 	
 	Attacker *atk;
-	Defender *dfd;
-	char *tmp;
-	char t;
-	int amt, type, baseDmg;
+	Defender *def;
+	double expectedHits, expectedWounds, expectedUnsavedWounds, expectedDamagePerWound, expectedDamage;
 
 	atk = (Attacker *) calloc(1, sizeof(Attacker));
-	dfd = (Defender *) calloc(1, sizeof(Defender));
-	tmp = calloc(1, sizeof(char) * 100);
+	def = (Defender *) calloc(1, sizeof(Defender));
 
 	printf("%s\n", "Welcome to the Warhammer 40k Mathhammer Calculator");
 	printf("%s\n", "This will collect information about Attacking and Defending units and calculate expected hits, wound, damage, and morale");
@@ -42,17 +41,56 @@ int main (int argc, char **argv) {
 
 	/* Collect weapon AP value */
 	printf("%s", "AP of these attacks AFTER modifiers?  ");
-	atk->AP = collectInt();
+	atk->AP = abs(collectInt());
 	printf("%d entered\n", atk->AP);
 
 	/* Collect Damage (D) of weapon */	
 	printDPrompt();
 	collectD(atk);
 	printf("D3: %d\nD6: %d\n D: %d\n", atk->d3, atk->d6, atk->dmg);
+
+	printf("%s", "Great! Now, lets collect information for the Defending unit.\n");
+
+	/* Collect Toughness (T) of Def. Unit */
+	printf("%s", "Toughness (T) of defending unit?  ");
+	def->T = collectInt();
+	printf("%d entered\n", def->T);
+
+	/* Collect Armor Save (Sv) of Def. Unit */
+	printf("%s", "Basic Armor Save (Sv) of defending unit?  ");
+	def->Sv = collectInt();
+	printf("%d entered\n", def->Sv);
+
+	/* Collect Wounds (W) per model of Def. Unit */
+	printf("%s", "Wounds (W) per model in defending unit?  ");
+	def->W = collectInt();
+	printf("%d entered\n", def->W);
+
+	/* calculate expectedHits = A * (1 - (BS / 6)) */
+	expectedHits = (atk->A * 1.0) * (1.0 - (((atk->BSWS - 1) * 1.0) / 6.0));
+	printf("Expected Hits: %0.2f\n", expectedHits);
 	
+	/* calculate expectedWounds */
+	expectedWounds = expectedHits * woundingOn(atk->S * 1.0, def->T * 1.0);
+	printf("Expected Wounds: %0.2f\n", expectedWounds);
+
+	/* calculate expectedUnsavedWounds */
+	expectedUnsavedWounds = expectedWounds * (1.0 - ((def->Sv - 1 - atk->AP) * 1.0) / 6.0);
+	printf("Expected Unsaved Wounds: %0.2f\n", expectedUnsavedWounds);
+
+	/* calculate expectedDamage */
+	//expectedDamagePerWound = max(atk->d3 * 2.0, 1.0) * max(atk->d6 * 3.5, 1.0) * max(atk->dmg * 1.0, 1.0);
+	expectedDamagePerWound = (atk->d3 * 2.0) + (atk->d6 * 3.5) + (atk->dmg * 1.0);
+	expectedDamage = expectedUnsavedWounds * expectedDamagePerWound;
+	printf("Expected Damage Per Wound: %0.2f\n", expectedDamagePerWound);
+	printf("Expected Total Damage: %0.2f\n", expectedDamage);
+
+	free(atk);
+	free(def);
 	return 0;
 }
 
+/* read and return an Int from stdin */
 int collectInt () {
 	char *tmp;
 	int ret;
@@ -67,6 +105,8 @@ int collectInt () {
 
 	return ret;
 }
+
+/* Print the instruction block for inputting damage values */
 void printDPrompt() {
 	printf("%s", "\tx - amount of dice in damage roll\n");
 	printf("%s", "\ty - either '3' for a d3 or '6' for a d6\n");
@@ -75,6 +115,7 @@ void printDPrompt() {
 	printf("%s", "Damage (D) of each attack (FORMAT: xDy+z)?  ");
 }
 
+/* read the D from stdin, parse, then sort into respective variables */
 void collectD(Attacker *atk) {
 	char *tmp;
 	char t;
@@ -102,10 +143,12 @@ void collectD(Attacker *atk) {
 	free(tmp);
 }
 
+/* cleans up input for D a little bit */
+/* TODO: make this more robust for different inputs */
 void parseD (char *str) {
 	char *tmp;
 
-	tmp = calloc(1, sizeof(char) * 20);
+	tmp = (char *) calloc(20, sizeof(char));
 	int a, b;
 	
 	a = 0;
@@ -125,4 +168,32 @@ void parseD (char *str) {
 	}
 	memcpy(str, tmp, 20);
 	free(tmp);
+}
+
+/* figure what value rolls to wound succeed on */
+double woundingOn(double S, double T) {
+
+	if (T == S) {
+		return 3.0 / 6.0;
+	} else if (S > T) {
+		if (S >= (2 * T)) {
+			return 5.0 / 6.0;
+		} else {
+			return 4.0 / 6.0;
+		}
+	} else {
+		if (S <= (T / 2)) {
+			return 1.0 / 6.0;
+		} else {
+			return 2.0 / 6.0;
+		}
+	}
+}
+
+double max (double a, double b) {
+	if (a > b) {
+		return a;
+	} else {
+		return b;
+	}
 }

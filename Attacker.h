@@ -1,7 +1,7 @@
 /* Attacker Struct */
 typedef struct {
 	int A;				/* Attacking unit's Attacks stat or how many shots are fired */
-	char BSWS[2];		/* Unit's weapon skill or ballistic skill */
+	int BSWS;			/* Unit's weapon skill or ballistic skill */
 	int hitMod;			/* Modifier to the unit's hit roll */
 	int hitOfSix;		/* The event that occurs on a hit roll of 6 */
 	int hitReroll;		/* The cause of re-rolling a hit roll */

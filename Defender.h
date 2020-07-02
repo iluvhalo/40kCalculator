@@ -12,6 +12,3 @@ typedef struct {
 	int LDMod;		/* Modifier for a unit's LD */
 	int models;		/* How many models are in the unit */
 } Defender;
-
-void parseD (Attacker *atk);
-

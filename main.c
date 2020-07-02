@@ -4,16 +4,19 @@
 #include "Attacker.h"
 #include "Defender.h"
 
+void parseD (char *str);
+
 int main (int argc, char **argv) {
 	
 	Attacker *atk;
 	Defender *dfd;
 	char *tmp;
+	char t;
+	int amt, type, baseDmg;
 
 	atk = calloc(1, sizeof(Attacker));
 	dfd = calloc(1, sizeof(Defender));
 	tmp = calloc(1, sizeof(char) * 100);
-	memset(atk->D, 0, sizeof(char) * 100);
 
 	printf("%s\n", "Welcome to the Warhammer 40k Mathhammer Calculator");
 	printf("%s\n", "This will collect information about Attacking and Defending units and calculate expected hits, wound, damage, and morale");
@@ -66,22 +69,30 @@ int main (int argc, char **argv) {
 	printf("%s", "z - static damage\n");
 	printf("%s", "Damage (D) of each attack (xDy+z)?  ");
 	fgets(tmp, 100, stdin);
-	if (memcpy(atk->D, tmp, sizeof(char) * 20) == NULL) {
+	parseD(tmp);
+	if (sscanf(tmp, "%d%c%d+%d", &amt, &t, &type, &baseDmg) != 4) {
 		fprintf(stderr, "%s", "Input Failed\n");
 		return 1;
 	} else {
-		atk->D[strlen(atk->D)-1] = '\0';
-		printf("%s entered\n", atk->D);
+		if (type == 3) {
+			atk->d3 = amt;
+		} else if (type == 6) {
+			atk->d6 = amt;
+		} else {
+			fprintf(stderr, "%s", "Input Failed\n");
+			return 1;
+		}
+		
+		atk->dmg = baseDmg;
+		printf("D3: %d\nD6: %d\n D: %d\n", atk->d3, atk->d6, atk->dmg);
 	}
 	memset(tmp, 0, 100);
-
-	parseD(atk);
 
 	
 	return 0;
 }
 
-void parseD (Attacker *atk) {
+void parseD (char *str) {
 	char *tmp;
 
 	tmp = calloc(1, sizeof(char) * 20);
@@ -91,24 +102,19 @@ void parseD (Attacker *atk) {
 	b = 0;
 
 	/* clear out white space and invalid characters from parsed string */
-	while (atk->D[a] != '\0') {
-		if ((atk->D[a] != ' ') && (((atk->D[a] >= '0') && (atk->D[a] <= '9')) || (atk->D[a] == 'D') || (atk->D[a] == 'd'))) {
-			if (atk->D[a] == 'D') {
-				atk->D[a] = 'd';
+	while (str[a] != '\0') {
+		if ((str[a] != ' ') && (((str[a] >= '0') && (str[a] <= '9')) || (str[a] == '+') || (str[a] == 'D') || (str[a] == 'd'))) {
+			if (str[a] == 'D') {
+				str[a] = 'd';
 			}
-			tmp[b] = atk->D[a];
+			tmp[b] = str[a];
 			b++;
 		}
 
 		a++;
 	}
-	memcpy(atk->D, tmp, 20);
+	memcpy(str, tmp, 20);
 	free(tmp);
 
-	printf("%s\n", atk->D);
-
-	/* check for d3 and d6 dammage */
-	if (strstr(atk->D, "d3") != NULL) {
-		tmp = strstr(atk->D, "d3");
-	}	
+	printf("%s\n", str);
 }

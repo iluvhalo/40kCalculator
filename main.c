@@ -5,7 +5,7 @@
 /* Attacker Struct */
 typedef struct {
 	int A;			/* Attacking unit's Attacks stat or how many shots are fired */
-	int BSWS;		/* Unit's weapon skill or ballistic skill */
+	char BSWS[2];		/* Unit's weapon skill or ballistic skill */
 	int hitMod;		/* Modifier to the unit's hit roll */
 	int hitOfSix;		/* The event that occurs on a hit roll of 6 */
 	int hitReroll;		/* The cause of re-rolling a hit roll */
@@ -14,7 +14,10 @@ typedef struct {
 	int woundOfSix; 	/* The event that occurs on a wound roll of 6 */
 	int woundReroll;	/* The cause of re-rolling a wound roll */
 	int AP;			/* Weapon's AP value */
-	char *D;		/* Weapon's damage value */
+	char D[20];		/* Weapon's damage value */
+	int d6;
+	int d3;
+	int dmg;
 } Attacker;
 
 /* Defender Struct */
@@ -37,11 +40,67 @@ int main (int argc, char **argv) {
 	
 	Attacker *atk;
 	Defender *dfd;
+	char *tmp;
 
 	atk = calloc(1, sizeof(Attacker));
 	dfd = calloc(1, sizeof(Defender));
+	tmp = calloc(1, sizeof(char) * 100);
 
-		
+	printf("%s\n", "Welcome to the Warhammer 40k Mathhammer Calculator");
+	printf("%s\n", "This will collect information about Attacking and Defending units and calculate expected hits, wound, damage, and morale");
+	printf("%s\n", "Lets start by collecting information about the attacking unit...");
+	printf("%s", "How many attacks (A) are are you sending into the other unit?  ");
+	
+	/* Collect amount of Attacks coming in */
+	tmp = fgets(tmp, 100, stdin);
+	if (sscanf(tmp, "%d", &atk->A) != 1) {
+		fprintf(stderr, "%s", "Input Failed\n");
+		return 1;
+	} else {
+		printf("%d entered\n", atk->A);
+	}
+	memset(tmp, 0, sizeof(char) * 100);
+	
+	/* Collect weapon Strength (S) */	
+	printf("%s", "Strength (S) of these attacks AFTER modifiers?  ");
+	tmp = fgets(tmp, 100, stdin);
+	if (sscanf(tmp, "%d", &atk->S) != 1) {
+		fprintf(stderr, "%s", "Input Failed\n");
+		return 1;
+	} else {
+		printf("%d entered\n", atk->S);
+	}
 
+	/* Collect BS/WS of attacking unit */
+	printf("%s", "BS/WS of the attacking unit BEFORE modifiers?  ");
+	tmp = fgets(tmp, 10, stdin);
+	if (sscanf(tmp, "%s", &atk->BSWS) != 1) {
+		fprintf(stderr, "%s", "Input Failed\n");
+		return 1;
+	} else {
+		printf("%s entered\n", atk->BSWS);
+	}
+	
+	/* Collect weapon AP value */
+	printf("%s", "AP of attacking unit AFTER modifiers?  ");
+	fgets(tmp, 100, stdin);
+	if (sscanf(tmp, "%d", &atk->AP) != 1) {
+		fprintf(stderr, "%s", "Input Failed\n");
+		return 1;
+	} else {
+		printf("%d entered\n", atk->AP);
+	}
+
+	/* Collect Damage (D) of weapon */	
+	printf("%s", "Damage (D) of each attack?  ");
+	fgets(tmp, 100, stdin);
+	if (sscanf(tmp, "%s", &atk->D) != 1) {
+		fprintf(stderr, "%s", "Input Failed\n");
+		return 1;
+	} else {
+		printf("%s entered\n", atk->D);
+	}
+
+	
 	return 0;
 }
